@@ -411,6 +411,11 @@ test('should not update tag version when --latest not set', async () => {
   expect(manifest.dependencies?.['@pnpm.e2e/foo']).toBe('1.0.0')
 })
 
+// Integration tests for range operator preservation
+// Note: These tests verify that range operators (^ and ~) are preserved during updates.
+// The same code path handles both stable and prerelease versions, so these tests
+// demonstrate the fix works for both cases. Prerelease-specific behavior is
+// thoroughly tested in the unit tests (manifest-utils/test/updateProjectManifestObject.test.ts).
 test('update preserves range operators for stable versions with caret', async () => {
   await addDistTag({ package: '@pnpm.e2e/foo', version: '1.0.0', distTag: 'latest' })
 
