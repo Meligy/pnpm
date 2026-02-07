@@ -118,7 +118,7 @@ test('peer dependencies derive range from resolved version for jsr protocol', as
   })
 })
 
-test('peer dependencies keep prerelease resolved version without prefix', async () => {
+test('peer dependencies keep prerelease resolved version with range operator', async () => {
   const manifest = await updateProjectManifestObject('/project', {}, [
     {
       alias: 'foo',
@@ -134,7 +134,7 @@ test('peer dependencies keep prerelease resolved version without prefix', async 
     foo: 'https://github.com/kevva/is-negative',
   })
   expect(manifest.peerDependencies).toStrictEqual({
-    foo: '2.1.0-rc.1',
+    foo: '~2.1.0-rc.1',
   })
 })
 
@@ -163,4 +163,60 @@ test('peer dependencies respect pinned version "patch" and "none"', async () => 
       foo: expected,
     })
   }))
+})
+
+test('preserves range operators for prerelease versions with major pinned', async () => {
+  const manifest = await updateProjectManifestObject('/project', {}, [
+    {
+      alias: 'foo',
+      bareSpecifier: 'npm:foo@^1.0.0-beta.2',
+      resolvedVersion: '1.0.0-beta.2',
+      pinnedVersion: 'major',
+      peer: true,
+      saveType: 'dependencies',
+    },
+  ])
+
+  expect(manifest.dependencies).toStrictEqual({
+    foo: 'npm:foo@^1.0.0-beta.2',
+  })
+  expect(manifest.peerDependencies).toStrictEqual({
+    foo: '^1.0.0-beta.2',
+  })
+})
+
+test('preserves range operators for prerelease versions with patch pinned', async () => {
+  const manifest = await updateProjectManifestObject('/project', {}, [
+    {
+      alias: 'bar',
+      bareSpecifier: '2.0.0-rc.2',
+      resolvedVersion: '2.0.0-rc.2',
+      pinnedVersion: 'patch',
+      peer: true,
+      saveType: 'devDependencies',
+    },
+  ])
+
+  expect(manifest.devDependencies).toStrictEqual({
+    bar: '2.0.0-rc.2',
+  })
+  expect(manifest.peerDependencies).toStrictEqual({
+    bar: '2.0.0-rc.2',
+  })
+})
+
+test('handles catalog specs preservation', async () => {
+  const manifest = await updateProjectManifestObject('/project', {}, [
+    {
+      alias: 'react',
+      bareSpecifier: 'catalog:',
+      resolvedVersion: '18.2.0',
+      pinnedVersion: 'major',
+      saveType: 'dependencies',
+    },
+  ])
+
+  expect(manifest.dependencies).toStrictEqual({
+    react: 'catalog:',
+  })
 })
