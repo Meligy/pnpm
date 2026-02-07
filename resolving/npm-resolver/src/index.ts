@@ -561,9 +561,6 @@ function calcSpecifier ({
 }
 
 function calcRange (version: string, wantedDependency: WantedDependency, defaultPinnedVersion?: PinnedVersion): string {
-  if (semver.parse(version)?.prerelease.length) {
-    return version
-  }
   const pinnedVersion = (wantedDependency.prevSpecifier ? whichVersionIsPinned(wantedDependency.prevSpecifier) : undefined) ??
     (wantedDependency.bareSpecifier ? whichVersionIsPinned(wantedDependency.bareSpecifier) : undefined) ??
     defaultPinnedVersion
