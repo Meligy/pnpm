@@ -410,3 +410,55 @@ test('should not update tag version when --latest not set', async () => {
   expect(manifest.dependencies?.['@pnpm.e2e/peer-c']).toBe('canary')
   expect(manifest.dependencies?.['@pnpm.e2e/foo']).toBe('1.0.0')
 })
+
+test('update preserves range operators for stable versions with caret', async () => {
+  await addDistTag({ package: '@pnpm.e2e/foo', version: '1.0.0', distTag: 'latest' })
+
+  prepare({
+    dependencies: {
+      '@pnpm.e2e/foo': '^1.0.0',
+    },
+  })
+
+  await install.handler({
+    ...DEFAULT_OPTS,
+    dir: process.cwd(),
+  })
+
+  await addDistTag({ package: '@pnpm.e2e/foo', version: '2.0.0', distTag: 'latest' })
+
+  await update.handler({
+    ...DEFAULT_OPTS,
+    dir: process.cwd(),
+    latest: true,
+  }, ['@pnpm.e2e/foo'])
+
+  const manifest = loadJsonFileSync<ProjectManifest>('package.json')
+  expect(manifest.dependencies?.['@pnpm.e2e/foo']).toBe('^2.0.0')
+})
+
+test('update preserves range operators for stable versions with tilde', async () => {
+  await addDistTag({ package: '@pnpm.e2e/foo', version: '1.0.0', distTag: 'latest' })
+
+  prepare({
+    dependencies: {
+      '@pnpm.e2e/foo': '~1.0.0',
+    },
+  })
+
+  await install.handler({
+    ...DEFAULT_OPTS,
+    dir: process.cwd(),
+  })
+
+  await addDistTag({ package: '@pnpm.e2e/foo', version: '1.1.0', distTag: 'latest' })
+
+  await update.handler({
+    ...DEFAULT_OPTS,
+    dir: process.cwd(),
+    latest: true,
+  }, ['@pnpm.e2e/foo'])
+
+  const manifest = loadJsonFileSync<ProjectManifest>('package.json')
+  expect(manifest.dependencies?.['@pnpm.e2e/foo']).toBe('~1.1.0')
+})
